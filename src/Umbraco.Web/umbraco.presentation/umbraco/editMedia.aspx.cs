@@ -2,11 +2,13 @@ using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Xml;
+using Umbraco.Web;
 using umbraco.cms.businesslogic.datatype.controls;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Umbraco.Core.IO;
+using Umbraco.Core;
 using umbraco.cms.businesslogic.property;
 
 namespace umbraco.cms.presentation
@@ -16,9 +18,9 @@ namespace umbraco.cms.presentation
 	/// </summary>
 	public partial class editMedia : BasePages.UmbracoEnsuredPage
 	{
-        private uicontrols.Pane mediaPropertiesPane = new uicontrols.Pane();
-        private LiteralControl updateDateLiteral = new LiteralControl();
-        private LiteralControl mediaFileLinksLiteral = new LiteralControl();
+        private readonly uicontrols.Pane _mediaPropertiesPane = new uicontrols.Pane();
+        private readonly LiteralControl _updateDateLiteral = new LiteralControl();
+        private readonly LiteralControl _mediaFileLinksLiteral = new LiteralControl();
 
 	    public editMedia()
 	    {
@@ -32,12 +34,10 @@ namespace umbraco.cms.presentation
 
 		//protected System.Web.UI.WebControls.Literal SyncPath;
 
-        override protected void OnInit(EventArgs e)
+        protected override void OnInit(EventArgs e)
         {
-            //
-            // CODEGEN: This call is required by the ASP.NET Web Form Designer.
-            //
-            InitializeComponent();
+            
+
             base.OnInit(e);
 
             _media = new cms.businesslogic.media.Media(int.Parse(Request.QueryString["id"]));
@@ -56,26 +56,17 @@ namespace umbraco.cms.presentation
 
             tmp.Save += new System.EventHandler(Save);
 
-            this.updateDateLiteral.ID = "updateDate";
-            this.updateDateLiteral.Text = _media.VersionDate.ToShortDateString() + " " + _media.VersionDate.ToShortTimeString();
+            this._updateDateLiteral.ID = "updateDate";
+            this._updateDateLiteral.Text = _media.VersionDate.ToShortDateString() + " " + _media.VersionDate.ToShortTimeString();
 
-            this.mediaFileLinksLiteral.ID = "mediaFileLinks";
-            mediaPropertiesPane.addProperty(ui.Text("content", "updateDate", base.getUser()), this.updateDateLiteral);
+            this._mediaFileLinksLiteral.ID = "mediaFileLinks";
+            _mediaPropertiesPane.addProperty(ui.Text("content", "updateDate", base.getUser()), this._updateDateLiteral);
 
             this.UpdateMediaFileLinksLiteral();
-            mediaPropertiesPane.addProperty(ui.Text("content", "mediaLinks"), this.mediaFileLinksLiteral);
+            _mediaPropertiesPane.addProperty(ui.Text("content", "mediaLinks"), this._mediaFileLinksLiteral);
 
             // add the property pane to the page rendering
-            tmp.tpProp.Controls.AddAt(1, mediaPropertiesPane);                       
-        }
-
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
-        private void InitializeComponent()
-        {
-
+            tmp.tpProp.Controls.AddAt(1, _mediaPropertiesPane);                       
         }
 
 		protected void Page_Load(object sender, System.EventArgs e)
@@ -87,7 +78,9 @@ namespace umbraco.cms.presentation
 			//}
 			if (!IsPostBack)
 			{
-				ClientTools.SyncTree(_media.Path, false);
+				ClientTools.SyncTree(_media.Path, 
+					//if 'saved' is force reload
+					Request.GetItemAs<bool>("saved"));
 			}			
 		}
 
@@ -123,20 +116,25 @@ namespace umbraco.cms.presentation
 
             _media.Save();
 
-            this.updateDateLiteral.Text = _media.VersionDate.ToShortDateString() + " " + _media.VersionDate.ToShortTimeString();
+            this._updateDateLiteral.Text = _media.VersionDate.ToShortDateString() + " " + _media.VersionDate.ToShortTimeString();
             this.UpdateMediaFileLinksLiteral();
 
 			_media.XmlGenerate(new XmlDocument());
-			ClientTools.SyncTree(_media.Path, true);
-		}
 
+			this.RedirectToSelfIfValid(
+				new
+					{
+						saved = true,
+					},
+				() => ClientTools.SyncTree(_media.Path, true));
+		}
 
         private void UpdateMediaFileLinksLiteral()
         {
             var uploadField = new Factory().GetNewObject(new Guid("5032a6e6-69e3-491d-bb28-cd31cd11086c"));
 
             // always clear, incase the upload file was removed
-            this.mediaFileLinksLiteral.Text = string.Empty;
+            this._mediaFileLinksLiteral.Text = string.Empty;
 
             try
             {
@@ -149,14 +147,14 @@ namespace umbraco.cms.presentation
 
                 if (properties.Any())
                 {
-                    this.mediaFileLinksLiteral.Text += "<table>";
+                    this._mediaFileLinksLiteral.Text += "<table>";
 
                     foreach (var property in properties)
                     {
-                        this.mediaFileLinksLiteral.Text += string.Format("<tr><td>{0}&nbsp;</td><td><a href=\"{1}\" target=\"_blank\">{1}</a></td></tr>", property.PropertyType.Name, property.Value);
+                        this._mediaFileLinksLiteral.Text += string.Format("<tr><td>{0}&nbsp;</td><td><a href=\"{1}\" target=\"_blank\">{1}</a></td></tr>", property.PropertyType.Name, property.Value);
                     }
                     
-                    this.mediaFileLinksLiteral.Text += "</table>";
+                    this._mediaFileLinksLiteral.Text += "</table>";
                 }
             }
             catch
