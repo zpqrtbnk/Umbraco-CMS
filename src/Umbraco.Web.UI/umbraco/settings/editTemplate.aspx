@@ -145,9 +145,9 @@
     <div id="macroMenu" style="width: 285px">
         <asp:Repeater ID="rpt_macros" runat="server">
             <ItemTemplate>
-                <div class="macro" rel="<%# DataBinder.Eval(Container, "DataItem.macroAlias")%>"
-                    params="<%#  DoesMacroHaveSettings(DataBinder.Eval(Container, "DataItem.id").ToString()) %>">
-                    <%# DataBinder.Eval(Container, "DataItem.macroName")%>
+                <div class="macro" rel="<%# DataBinder.Eval(Container, "DataItem.Alias")%>"
+                    params="<%#  DoesMacroHaveSettings(DataBinder.Eval(Container, "DataItem.Id").ToString()) %>">
+                    <%# DataBinder.Eval(Container, "DataItem.Name")%>
                 </div>
             </ItemTemplate>
         </asp:Repeater>

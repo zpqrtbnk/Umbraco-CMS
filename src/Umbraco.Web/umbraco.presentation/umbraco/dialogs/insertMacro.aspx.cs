@@ -3,6 +3,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Web;
 using System.Web.SessionState;
 using System.Web.UI;
@@ -10,10 +11,13 @@ using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
 
 using System.Reflection;
+using Umbraco.Core;
 using Umbraco.Core.IO;
 using umbraco.BusinessLogic;
+using Umbraco.Core.Models.Rdbms;
 using umbraco.DataLayer;
 using umbraco.businesslogic.Exceptions;
+using Umbraco.Web;
 
 namespace umbraco.dialogs
 {
@@ -98,20 +102,15 @@ namespace umbraco.dialogs
 			} 
 			else 
 			{
-				IRecordsReader macroRenderings;
-				if (helper.Request("editor") != "")
-					macroRenderings = SqlHelper.ExecuteReader("select macroAlias, macroName from cmsMacro where macroUseInEditor = 1 order by macroName");
-				else
-					macroRenderings = SqlHelper.ExecuteReader("select macroAlias, macroName from cmsMacro order by macroName");
-				
-				macroAlias.DataSource = macroRenderings;
-				macroAlias.DataValueField = "macroAlias";
-				macroAlias.DataTextField = "macroName";
-				macroAlias.DataBind();
-				macroRenderings.Close();
+                var query = "SELECT macroAlias, macroName FROM cmsMacro {0}";
+                query = string.Format(query, Request.GetItemAsString("editor") != "" ? "WHERE  macroUseInEditor = 1" : string.Empty);
+                var result = ApplicationContext.Current.DatabaseContext.Database.Fetch<MacroDto>(query).OrderBy(x => x.Name);
 
+                macroAlias.DataSource = result;
+                macroAlias.DataValueField = "Alias";
+                macroAlias.DataTextField = "Name";   
+                macroAlias.DataBind();
 			}
-
 		}
 	}
 }

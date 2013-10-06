@@ -8,7 +8,8 @@ using System.Web.SessionState;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
-
+using Umbraco.Core;
+using Umbraco.Core.Models.Rdbms;
 using umbraco.DataLayer;
 
 namespace umbraco.dialogs
@@ -66,25 +67,23 @@ namespace umbraco.dialogs
 			fieldPicker.StandardPropertiesLabel = ui.Text("templateEditor", "standardFields");
 			fieldPicker.CustomPropertiesLabel = ui.Text("templateEditor", "customFields");
 
-			IRecordsReader dataTypes = SqlHelper.ExecuteReader(fieldSql);
-			fieldPicker.DataTextField = "alias";
-			fieldPicker.DataValueField = "alias";
+            var dataTypes = ApplicationContext.Current.DatabaseContext.Database.Query<PropertyTypeDto>(fieldSql);
+            
+			fieldPicker.DataTextField = "Alias";
+			fieldPicker.DataValueField = "Alias";
 			fieldPicker.DataSource = dataTypes;
 			fieldPicker.DataBind();
 			fieldPicker.Attributes.Add("onChange", "document.forms[0].field.value = document.forms[0]." + fieldPicker.ClientID + "[document.forms[0]." + fieldPicker.ClientID + ".selectedIndex].value;");
-			dataTypes.Close();
 
 			altFieldPicker.ChooseText = ui.Text("templateEditor", "chooseField");
 			altFieldPicker.StandardPropertiesLabel = ui.Text("templateEditor", "standardFields");
 			altFieldPicker.CustomPropertiesLabel = ui.Text("templateEditor", "customFields");
 
-			IRecordsReader dataTypes2 = SqlHelper.ExecuteReader(fieldSql);
-			altFieldPicker.DataTextField = "alias";
-			altFieldPicker.DataValueField = "alias";
-			altFieldPicker.DataSource = dataTypes2;
+			altFieldPicker.DataTextField = "Alias";
+			altFieldPicker.DataValueField = "Alias";
+			altFieldPicker.DataSource = dataTypes;
 			altFieldPicker.DataBind();
 			altFieldPicker.Attributes.Add("onChange", "document.forms[0].useIfEmpty.value = document.forms[0]." + altFieldPicker.ClientID + "[document.forms[0]." + altFieldPicker.ClientID + ".selectedIndex].value;");
-			dataTypes2.Close();
 
 			// Pre values
 			if (!m_IsDictionaryMode)

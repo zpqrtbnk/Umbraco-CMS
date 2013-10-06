@@ -9,6 +9,7 @@ using umbraco.BusinessLogic;
 using umbraco.cms.businesslogic.skinning;
 using umbraco.cms.businesslogic.template;
 using umbraco.cms.presentation.Trees;
+using Umbraco.Core.Models.Rdbms;
 using umbraco.DataLayer;
 using Umbraco.Core.IO;
 using umbraco.uicontrols;
@@ -209,13 +210,10 @@ namespace umbraco.cms.presentation.settings
 
 		private void LoadMacros()
 		{
-			IRecordsReader macroRenderings =
-				SqlHelper.ExecuteReader("select id, macroAlias, macroName from cmsMacro order by macroName");
+            var result = ApplicationContext.Current.DatabaseContext.Database.Fetch<MacroDto>("SELECT id, macroAlias, macroName FROM cmsMacro").OrderBy(x => x.Name);
 
-			rpt_macros.DataSource = macroRenderings;
-			rpt_macros.DataBind();
-
-			macroRenderings.Close();
+            rpt_macros.DataSource = result;
+            rpt_macros.DataBind();
 		}
 
 		public string DoesMacroHaveSettings(string macroId)

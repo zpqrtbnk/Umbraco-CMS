@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.UI;
@@ -10,8 +11,11 @@ using umbraco.BasePages;
 using umbraco.BusinessLogic;
 using umbraco.businesslogic.Exceptions;
 using umbraco.cms.businesslogic.macro;
+using Umbraco.Core;
+using Umbraco.Core.Models.Rdbms;
 using umbraco.interfaces;
 using umbraco.DataLayer;
+using Umbraco.Web;
 
 namespace umbraco.presentation.tinymce3
 {
@@ -163,17 +167,14 @@ namespace umbraco.presentation.tinymce3
             }
             else
             {
-                IRecordsReader macroRenderings;
-                if (Request["editor"] != "")
-                    macroRenderings = SqlHelper.ExecuteReader("select macroAlias, macroName from cmsMacro where macroUseInEditor = 1 order by macroName");
-                else
-                    macroRenderings = SqlHelper.ExecuteReader("select macroAlias, macroName from cmsMacro order by macroName");
+                var query = "SELECT macroAlias, macroName FROM cmsMacro {0}";
+                query = string.Format(query, Request.GetItemAsString("editor") != "" ? "WHERE  macroUseInEditor = 1" : string.Empty);
+                var result = ApplicationContext.Current.DatabaseContext.Database.Fetch<MacroDto>(query).OrderBy(x => x.Name);
 
-                umb_macroAlias.DataSource = macroRenderings;
-                umb_macroAlias.DataValueField = "macroAlias";
-                umb_macroAlias.DataTextField = "macroName";
+                umb_macroAlias.DataSource = result;
+                umb_macroAlias.DataValueField = "Alias";
+                umb_macroAlias.DataTextField = "Name"; 
                 umb_macroAlias.DataBind();
-                macroRenderings.Close();
             }
         }
 

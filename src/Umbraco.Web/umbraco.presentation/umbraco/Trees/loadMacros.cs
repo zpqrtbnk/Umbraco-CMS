@@ -1,45 +1,27 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
+using System.Globalization;
+using System.Linq;
 using System.Text;
-using System.Web;
-using System.Xml;
-using System.Configuration;
-using umbraco.BasePages;
-using umbraco.BusinessLogic;
 using umbraco.businesslogic;
-using umbraco.cms.businesslogic;
-using umbraco.cms.businesslogic.cache;
-using umbraco.cms.businesslogic.contentitem;
-using umbraco.cms.businesslogic.datatype;
-using umbraco.cms.businesslogic.language;
-using umbraco.cms.businesslogic.media;
-using umbraco.cms.businesslogic.member;
-using umbraco.cms.businesslogic.property;
-using umbraco.cms.businesslogic.web;
-using umbraco.interfaces;
+using Umbraco.Core.Models.Rdbms;
 using umbraco.DataLayer;
-using umbraco.BusinessLogic.Actions;
-using umbraco.BusinessLogic.Utils;
 using umbraco.cms.presentation.Trees;
 using Umbraco.Core;
 
 
 namespace umbraco
 {
-	/// <summary>
-	/// Handles loading of the cache application into the developer application tree
-	/// </summary>
+    /// <summary>
+    /// Handles loading of the cache application into the developer application tree
+    /// </summary>
     [Tree(Constants.Applications.Developer, "macros", "Macros", sortOrder: 2)]
     public class loadMacros : BaseTree
-	{
+    {
 
         public loadMacros(string application) : base(application) { }
 
         protected override void CreateRootNode(ref XmlTreeNode rootNode)
-        {   
+        {
             rootNode.NodeType = "init" + TreeAlias;
             rootNode.NodeID = "init";
         }
@@ -70,26 +52,22 @@ function openMacro(id) {
         /// <param name="tree"></param>
         public override void Render(ref XmlTree tree)
         {
-            using (IRecordsReader macros = SqlHelper.ExecuteReader("select id, macroName from cmsMacro order by macroName"))
+            var dtos = ApplicationContext.Current.DatabaseContext.Database.Fetch<MacroDto>("").OrderBy(x => x.Name);
+
+            foreach (var dto in dtos)
             {
+                var xNode = XmlTreeNode.Create(this);
+                xNode.NodeID = dto.Id.ToString(CultureInfo.InvariantCulture);
+                xNode.Text = dto.Name;
+                xNode.Action = string.Format("javascript:openMacro({0});", dto.Id);
+                xNode.Icon = "developerMacro.gif";
+                xNode.OpenIcon = "developerMacro.gif";
+                OnBeforeNodeRender(ref tree, ref xNode, EventArgs.Empty);
+                if (xNode != null)
+                    tree.Add(xNode);
                 
-                while (macros.Read())
-                {
-                    XmlTreeNode xNode = XmlTreeNode.Create(this);
-                    xNode.NodeID = macros.GetInt("id").ToString();
-                    xNode.Text = macros.GetString("macroName");
-                    xNode.Action = "javascript:openMacro(" + macros.GetInt("id") + ");";
-                    xNode.Icon = "developerMacro.gif";
-                    xNode.OpenIcon = "developerMacro.gif";
-                    OnBeforeNodeRender(ref tree, ref xNode, EventArgs.Empty);
-                    if (xNode != null)
-                    {
-                        tree.Add(xNode);
-                    }
-                    OnAfterNodeRender(ref tree, ref xNode, EventArgs.Empty);
-                }
+                OnAfterNodeRender(ref tree, ref xNode, EventArgs.Empty);
             }
         }
-
-	}
+    }
 }

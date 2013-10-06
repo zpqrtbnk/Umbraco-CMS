@@ -1,4 +1,7 @@
-﻿using umbraco.cms.businesslogic.datatype;
+﻿using System.Linq;
+using umbraco.cms.businesslogic.datatype;
+using Umbraco.Core;
+using Umbraco.Core.Models.Rdbms;
 
 namespace umbraco
 {
@@ -14,31 +17,9 @@ namespace umbraco
 		/// <returns>The alias</returns>
 		public static string GetAlias(this PreValue preValue)
 		{
-			using (var reader = uQuery.SqlHelper.ExecuteReader(
-				"SELECT alias FROM cmsDataTypePreValues WHERE id = @id",
-				uQuery.SqlHelper.CreateParameter("@id", preValue.Id)))
-			{
-				var hasRows = reader.Read();
+            var dtos = ApplicationContext.Current.DatabaseContext.Database.Fetch<DataTypePreValueDto>("WHERE id = @Id", new { Id = preValue.Id });
 
-				if (!hasRows)
-				{
-					return null;
-				}
-
-				var alias = string.Empty;
-
-				while (hasRows)
-				{
-					if (reader.ContainsField("alias") && !reader.IsNull("alias"))
-					{
-						alias = reader.GetString("alias");
-					}
-
-					hasRows = reader.Read();
-				}
-
-				return alias;
-			}
+		    return dtos.Any() ? dtos.First().Alias : null;
 		}
 	}
 }
