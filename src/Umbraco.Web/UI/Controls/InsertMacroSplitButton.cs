@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using ClientDependency.Core;
+using Umbraco.Core;
 using Umbraco.Core.Configuration;
 using Umbraco.Core.IO;
 using Umbraco.Core.Models;
@@ -71,17 +72,17 @@ namespace Umbraco.Web.UI.Controls
 			var divMacroItemContainer = new TagBuilder("div");
 			divMacroItemContainer.Attributes.Add("style", "width: 285px;display:none;");
 			divMacroItemContainer.Attributes.Add("class", "sbMenu");
-			using (var macroReader = SqlHelper.ExecuteReader("select id, macroAlias, macroName from cmsMacro order by macroName"))
+
+		    var dtos = ApplicationContext.Current.DatabaseContext.Database.Fetch<MacroDto>("").OrderBy(x => x.Name);
+
+            foreach (var dto in dtos)
 			{
-				while (macroReader.Read())
-				{
-					var divMacro = new TagBuilder("div");
-					divMacro.AddCssClass("macro-item");
-					divMacro.Attributes.Add("rel", macroReader.GetString("macroAlias"));
-					divMacro.Attributes.Add("data-has-params", DoesMacroHaveParameters(macroReader.GetInt("id")).ToString().ToLower());
-					divMacro.SetInnerText(macroReader.GetString("macroName"));
-					divMacroItemContainer.InnerHtml += divMacro.ToString();	
-				}
+                var divMacro = new TagBuilder("div");
+                divMacro.AddCssClass("macro-item");
+                divMacro.Attributes.Add("rel", dto.Alias);
+                divMacro.Attributes.Add("data-has-params", DoesMacroHaveParameters(dto.Id).ToString().ToLower());
+                divMacro.SetInnerText(dto.Name);
+                divMacroItemContainer.InnerHtml += divMacro.ToString();	
 			}
 			
 			/*create the button itself, similar to this:

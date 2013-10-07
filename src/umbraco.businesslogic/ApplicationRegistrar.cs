@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Xml.Linq;
 using Umbraco.Core;
+using Umbraco.Core.Models.Rdbms;
 using Umbraco.Core.Persistence;
 using umbraco.BusinessLogic.Utils;
 using umbraco.DataLayer;
@@ -66,14 +67,15 @@ namespace umbraco.BusinessLogic
                     var exist = db.TableExist("umbracoApp");
                     if (exist)
                     {
-                        var dbApps = SqlHelper.ExecuteReader("SELECT * FROM umbracoApp WHERE appAlias NOT IN (" + inString + ")");
-                        while (dbApps.Read())
+                        var dtos = db.Fetch<AppDto>("WHERE appAlias NOT IN @InString", new { @InString = inString });
+
+                        foreach (var dto in dtos)
                         {
                             doc.Root.Add(new XElement("add",
-                                                      new XAttribute("alias", dbApps.GetString("appAlias")),
-                                                      new XAttribute("name", dbApps.GetString("appName")),
-                                                      new XAttribute("icon", dbApps.GetString("appIcon")),
-                                                      new XAttribute("sortOrder", dbApps.GetByte("sortOrder"))));
+                                                      new XAttribute("alias", dto.AppAlias),
+                                                      new XAttribute("name", dto.AppName),
+                                                      new XAttribute("icon", dto.AppIcon),
+                                                      new XAttribute("sortOrder", dto.SortOrder)));
                         }
                     }
 

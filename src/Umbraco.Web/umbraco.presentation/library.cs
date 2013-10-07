@@ -12,6 +12,7 @@ using System.Xml.XPath;
 using Umbraco.Core;
 using Umbraco.Core.Cache;
 using Umbraco.Core.Logging;
+using Umbraco.Core.Models.Rdbms;
 using Umbraco.Web;
 using Umbraco.Web.Cache;
 using Umbraco.Web.PublishedCache;
@@ -1236,17 +1237,17 @@ namespace umbraco
         {
             XmlDocument xd = new XmlDocument();
             xd.LoadXml("<preValues/>");
+            
+            var dtos = ApplicationContext.Current.DatabaseContext.Database.Fetch<DataTypePreValueDto>(
+               "WHERE DataTypeNodeId = @DataTypeNodeId", new { DataTypeNodeId = DataTypeId }).OrderBy(x => x.SortOrder);
 
-            using (IRecordsReader dr = SqlHelper.ExecuteReader("Select id, [value] from cmsDataTypeprevalues where DataTypeNodeId = @dataTypeId order by sortorder",
-                SqlHelper.CreateParameter("@dataTypeId", DataTypeId)))
+            foreach (var dto in dtos)
             {
-                while (dr.Read())
-                {
-                    XmlNode n = xmlHelper.addTextNode(xd, "preValue", dr.GetString("value"));
-                    n.Attributes.Append(xmlHelper.addAttribute(xd, "id", dr.GetInt("id").ToString()));
-                    xd.DocumentElement.AppendChild(n);
-                }
+                XmlNode n = xmlHelper.addTextNode(xd, "preValue", dto.Value);
+                n.Attributes.Append(xmlHelper.addAttribute(xd, "id", dto.Id.ToString()));
+                xd.DocumentElement.AppendChild(n);
             }
+
             XPathNavigator xp = xd.CreateNavigator();
             return xp.Select("/preValues");
         }
