@@ -349,6 +349,7 @@
     <Compile Include="Models\PublishedContent\IPublishedContentModelFactory.cs" />
     <Compile Include="Models\PublishedContent\PublishedContentModel.cs" />
     <Compile Include="Models\PublishedContent\PublishedContentModelFactoryResolver.cs" />
+    <Compile Include="Models\Rdbms\CacheInstructionDto.cs" />
     <Compile Include="Models\TaggableObjectTypes.cs" />
     <Compile Include="Models\TemplateNode.cs" />
     <Compile Include="Models\UmbracoEntityExtensions.cs" />
@@ -1051,7 +1052,10 @@
     <Compile Include="Standalone\StandaloneCoreBootManager.cs" />
     <Compile Include="Strings\ContentBaseExtensions.cs" />
     <Compile Include="Strings\Diff.cs" />
+    <Compile Include="Sync\DatabaseServerMessenger.cs" />
+    <Compile Include="Sync\DistributedMessage.cs" />
     <Compile Include="Sync\RefreshInstruction.cs" />
+    <Compile Include="Sync\RefreshMethodType.cs" />
     <Compile Include="TopologicalSorter.cs" />
     <Compile Include="Strings\DefaultUrlSegmentProvider.cs" />
     <Compile Include="Strings\IUrlSegmentProvider.cs" />
